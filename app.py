@@ -10,6 +10,7 @@ from flask import Flask, render_template, request, jsonify, g
 from dotenv import load_dotenv
 import anthropic
 from openai import OpenAI
+from pydub import AudioSegment
 
 load_dotenv()
 
@@ -133,34 +134,73 @@ def handle_api_error(e):
 
 # ─── Transcription ───
 
+WHISPER_MAX_BYTES = 24 * 1024 * 1024  # 24MB (Whisper limit is 25MB)
+CHUNK_DURATION_MS = 10 * 60 * 1000    # 10 minutes per chunk
+
+
+def _transcribe_file(path):
+    """Send a single audio file to Whisper and return trimmed text."""
+    with open(path, "rb") as f:
+        result = openai_client.audio.transcriptions.create(
+            model="whisper-1", file=f, response_format="text",
+        )
+    return result.strip() if isinstance(result, str) else result.text.strip()
+
+
 @app.route("/api/transcribe", methods=["POST"])
 def transcribe():
     if "audio" not in request.files:
         return jsonify({"error": "No audio file provided"}), 400
 
     audio_file = request.files["audio"]
-    tmp = None
+    tmp_webm = None
+    tmp_files = []
     try:
-        tmp = tempfile.NamedTemporaryFile(suffix=".webm", delete=False)
-        audio_file.save(tmp)
-        tmp.close()
+        # Save uploaded webm
+        tmp_webm = tempfile.NamedTemporaryFile(suffix=".webm", delete=False)
+        audio_file.save(tmp_webm)
+        tmp_webm.close()
 
-        with open(tmp.name, "rb") as f:
-            result = openai_client.audio.transcriptions.create(
-                model="whisper-1",
-                file=f,
-                response_format="text",
-            )
+        # Convert to mp3 (much smaller than webm)
+        audio = AudioSegment.from_file(tmp_webm.name, format="webm")
+        tmp_mp3 = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
+        tmp_mp3.close()
+        tmp_files.append(tmp_mp3.name)
+        audio.export(tmp_mp3.name, format="mp3", bitrate="64k")
 
-        text = result.strip() if isinstance(result, str) else result.text.strip()
+        mp3_size = os.path.getsize(tmp_mp3.name)
+        app.logger.info(f"Audio: {len(audio)/1000:.0f}s, mp3={mp3_size/1024/1024:.1f}MB")
+
+        if mp3_size <= WHISPER_MAX_BYTES:
+            text = _transcribe_file(tmp_mp3.name)
+        else:
+            # Split into ~10 minute chunks
+            chunk_paths = []
+            for i in range(0, len(audio), CHUNK_DURATION_MS):
+                chunk = audio[i:i + CHUNK_DURATION_MS]
+                cf = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
+                cf.close()
+                tmp_files.append(cf.name)
+                chunk.export(cf.name, format="mp3", bitrate="64k")
+                chunk_paths.append(cf.name)
+
+            app.logger.info(f"Split into {len(chunk_paths)} chunks")
+            transcripts = [_transcribe_file(p) for p in chunk_paths]
+            text = " ".join(t for t in transcripts if t)
+
         return jsonify({"transcript": text, "length": len(text)})
     except Exception as e:
         app.logger.error(f"Transcription error: {traceback.format_exc()}")
         return jsonify({"error": f"Transcription failed: {str(e)}"}), 500
     finally:
-        if tmp:
+        if tmp_webm:
             try:
-                os.unlink(tmp.name)
+                os.unlink(tmp_webm.name)
+            except OSError:
+                pass
+        for f in tmp_files:
+            try:
+                os.unlink(f)
             except OSError:
                 pass
 
