@@ -4,3 +4,4 @@ python-dotenv
 gunicorn
 openai
 pydub
+pyaudioop
