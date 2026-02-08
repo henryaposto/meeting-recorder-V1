@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Callnotes</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=10">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,89 +13,170 @@
     <header class="header">
         <div class="header-inner">
             <div class="logo">
-                <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M7 12.5C7 12.5 9 16 12 16C15 16 17 12.5 17 12.5C17 12.5 15 9 12 9C9 9 7 12.5 7 12.5Z" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12.5" r="1.5" fill="#fff"/></svg></div>
+                <button id="sidebarToggle" class="sidebar-toggle" title="Toggle sidebar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <div class="logo-mark">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M7 12.5C7 12.5 9 16 12 16C15 16 17 12.5 17 12.5C17 12.5 15 9 12 9C9 9 7 12.5 7 12.5Z" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                        <circle cx="12" cy="12.5" r="1.5" fill="#fff"/>
+                    </svg>
+                </div>
                 <span class="logo-text">Callnotes</span>
             </div>
             <span class="header-tag">Claude AI</span>
         </div>
     </header>
 
-    <main class="wrap">
-        <section class="hero">
-            <h1>Record. Transcribe. <span class="gr">Understand.</span></h1>
-        </section>
-
-        <!-- Record -->
-        <div class="section">
-            <div class="rec-row">
-                <button id="recordBtn" class="rec-btn"><span class="rec-dot"></span></button>
-                <span id="timer" class="timer">00:00</span>
-                <span id="liveTag" class="live-tag hidden">Live</span>
+    <div class="app-layout">
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-title">Recordings</span>
+                <button id="newCallBtn" class="btn btn-accent btn-sm">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    New Call
+                </button>
             </div>
-            <div id="waveWrap" class="wave-box hidden"><canvas id="waveCanvas"></canvas></div>
-            <audio id="player" controls class="player hidden"></audio>
-        </div>
+            <div id="recordingsList" class="recordings-list"></div>
+        </aside>
 
-        <!-- Transcript -->
-        <div class="section">
-            <div class="section-head">
-                <span class="section-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Transcript</span>
-            </div>
-            <div id="transcriptArea" class="out-scroll"></div>
-        </div>
+        <main class="wrap">
+            <section class="hero">
+                <h1>Record. Transcribe. <span class="gr">Understand.</span></h1>
+            </section>
 
-        <!-- Summary -->
-        <div class="section">
-            <div class="section-head">
-                <span class="section-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Summary</span>
-                <button id="summarizeBtn" class="btn btn-accent" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Generate Summary</button>
-            </div>
-            <div id="summaryArea" class="out-full"></div>
-        </div>
-
-        <!-- Email -->
-        <div class="section">
-            <div class="section-head">
-                <span class="section-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email</span>
-                <button id="emailBtn" class="btn btn-accent" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Draft Email</button>
-            </div>
-            <div id="emailArea" class="out-full"></div>
-            <div id="emailTools" class="hidden">
-                <div class="email-bar">
-                    <button id="shorterBtn" class="btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>Shorter</button>
-                    <button id="longerBtn" class="btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>Longer</button>
-                    <button id="toneBtn" class="btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg><span id="toneLabel">Casual</span></button>
-                    <button id="retryBtn" class="btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Try Again</button>
-                    <button id="copyBtn" class="btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
+            <!-- Record -->
+            <div class="section">
+                <div class="rec-row">
+                    <button id="recordBtn" class="rec-btn"><span class="rec-dot"></span></button>
+                    <span id="timer" class="timer">00:00</span>
+                    <span id="liveTag" class="live-tag hidden">Live</span>
                 </div>
-                <div class="email-edit">
-                    <input type="text" id="qeInput" placeholder="Quick edit: add urgency, mention deadline...">
-                    <button id="qeBtn" class="btn btn-accent btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+                <div id="waveWrap" class="wave-box hidden"><canvas id="waveCanvas"></canvas></div>
+                <audio id="player" controls class="player hidden"></audio>
+            </div>
+
+            <!-- Transcript (collapsible) -->
+            <div class="section">
+                <div class="section-head transcript-toggle" id="transcriptToggle">
+                    <span class="section-label">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Transcript
+                        <span id="wordCount" class="word-count"></span>
+                    </span>
+                    <span class="expand-icon" id="expandIcon">&#9654;</span>
+                </div>
+                <div id="transcriptPreview" class="transcript-preview"></div>
+                <div id="transcriptArea" class="out-scroll hidden"></div>
+            </div>
+
+            <!-- Alerts -->
+            <div id="alertsArea" class="alerts-area hidden"></div>
+
+            <!-- Summary -->
+            <div class="section">
+                <div class="section-head">
+                    <span class="section-label">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                        Summary
+                    </span>
+                    <button id="summarizeBtn" class="btn btn-accent" disabled>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        Generate Summary
+                    </button>
+                </div>
+                <div id="summaryArea" class="out-full"></div>
+            </div>
+
+            <!-- Email -->
+            <div class="section">
+                <div class="section-head">
+                    <span class="section-label">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        Email
+                    </span>
+                    <div class="email-head-actions">
+                        <button id="emailBtn" class="btn btn-accent" disabled>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            Draft Email
+                        </button>
+                    </div>
+                </div>
+                <div id="emailArea" class="out-full"></div>
+                <div id="emailTools" class="hidden">
+                    <div class="email-bar">
+                        <button id="shorterBtn" class="btn">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                            Shorter
+                        </button>
+                        <button id="longerBtn" class="btn">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                            Longer
+                        </button>
+                        <button id="toneBtn" class="btn">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>
+                            <span id="toneLabel">Casual</span>
+                        </button>
+                        <button id="teamUpdateBtn" class="btn">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            Team Update
+                        </button>
+                        <button id="salesFollowUpBtn" class="btn">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            Sales Follow-Up
+                        </button>
+                        <button id="retryBtn" class="btn">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                            Try Again
+                        </button>
+                        <button id="copyBtn" class="btn">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            Copy
+                        </button>
+                    </div>
+                    <div class="email-edit">
+                        <input type="text" id="qeInput" placeholder="Quick edit: add urgency, mention deadline...">
+                        <button id="qeBtn" class="btn btn-accent btn-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Chat -->
-        <div class="section" style="border-bottom:none">
-            <div class="section-head">
-                <span class="section-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Ask About This Meeting</span>
+            <!-- Chat -->
+            <div class="section" style="border-bottom:none">
+                <div class="section-head">
+                    <span class="section-label">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        Ask About This Meeting
+                    </span>
+                </div>
+                <div id="chatThread" class="chat-thread">
+                    <div class="brow brow-ai"><div class="bub bub-ai">Record a meeting, then ask me anything about it.</div></div>
+                </div>
+                <div id="chatPills" class="chat-pills hidden"></div>
+                <div class="chat-bar">
+                    <input type="text" id="chatIn" placeholder="Ask about this meeting..." disabled>
+                    <button id="micBtn" class="bar-btn" title="Voice" style="position:relative">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                        <span id="micDot" class="mic-dot hidden"></span>
+                    </button>
+                    <button id="sendBtn" class="bar-btn send" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                </div>
             </div>
-            <div id="chatThread" class="chat-thread">
-                <div class="brow brow-ai"><div class="bub bub-ai">Record a meeting, then ask me anything about it.</div></div>
-            </div>
-            <div id="chatPills" class="chat-pills hidden">
-                <button class="pill" data-q="Expand the summary with more detail and context.">More Detailed Summary</button>
-                <button class="pill" data-q="Extract all action items as a numbered checklist with owners.">Action Items</button>
-                <button class="pill" data-q="Suggest tools, platforms, or companies that solve the challenges discussed.">Companies & Solutions</button>
-            </div>
-            <div class="chat-bar">
-                <input type="text" id="chatIn" placeholder="Ask about this meeting..." disabled>
-                <button id="micBtn" class="bar-btn" style="position:relative" title="Voice"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg><span id="micDot" class="mic-dot hidden"></span></button>
-                <button id="sendBtn" class="bar-btn send" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
-            </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
-    <script src="/static/app.js"></script>
+    <div id="sidebarOverlay" class="sidebar-overlay hidden"></div>
+    <div id="ctxMenu" class="ctx-menu hidden">
+        <button id="ctxRename" class="ctx-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+            Rename
+        </button>
+    </div>
+
+    <script src="/static/app.js?v=10"></script>
 </body>
 </html>
